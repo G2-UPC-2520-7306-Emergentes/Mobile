@@ -9,26 +9,26 @@ enum HomeNavItem {
   String get label {
     switch (this) {
       case HomeNavItem.history:
-        return 'History';
+        return 'Historial';
       case HomeNavItem.map:
-        return 'Map';
+        return 'Mapa';
       case HomeNavItem.companies:
-        return 'Companies';
+        return 'Empresas';
       case HomeNavItem.help:
-        return 'Help';
+        return 'Ayuda';
     }
   }
 
   IconData get icon {
     switch (this) {
       case HomeNavItem.history:
-        return Icons.receipt_long_rounded;
+        return Icons.history;
       case HomeNavItem.map:
-        return Icons.map_rounded;
+        return Icons.map;
       case HomeNavItem.companies:
-        return Icons.apartment_rounded;
+        return Icons.business;
       case HomeNavItem.help:
-        return Icons.help_center_rounded;
+        return Icons.help_outline;
     }
   }
 }

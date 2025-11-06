@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../core/theme/app_theme.dart';
+import '../core/providers/app_state_provider.dart';
 import '../features/home/presentation/home_screen.dart';
 
 class AppBootstrap extends StatelessWidget {
@@ -8,11 +10,14 @@ class AppBootstrap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'FoodChain',
-      theme: AppTheme.theme,
-      home: const HomeScreen(),
+    return ChangeNotifierProvider(
+      create: (_) => AppStateProvider(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'FoodChain',
+        theme: AppTheme.theme,
+        home: const HomeScreen(),
+      ),
     );
   }
 }

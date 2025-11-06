@@ -1,0 +1,149 @@
+import '../models/batch.dart';
+import '../models/step.dart';
+import '../models/user.dart';
+
+class FakeApiService {
+  // Datos de batches
+  final List<Map<String, dynamic>> _batchesData = [
+    {"id": "101", "lotName": "Café Cosecha Fina 2025", "farmName": "Los Andes", "variety": "Arábica", "harvestDate": "2025-11-15", "createdDate": "2025-10-01T08:00:00Z", "state": "Activo", "imageUrl": "img-cafe-101", "producer_id": "8"},
+    {"id": "102", "lotName": "Maíz Amarillo Lote A", "farmName": "Milpa Fértil", "variety": "Hybrid", "harvestDate": "2026-02-10", "createdDate": "2025-10-05T10:30:00Z", "state": "Draft", "imageUrl": "img-maiz-102", "producer_id": "8"},
+    {"id": "103", "lotName": "Aguacate Hass Export", "farmName": "Hassland", "variety": "Hass", "harvestDate": "2025-12-01", "createdDate": "2025-10-10T15:45:00Z", "state": "Activo", "imageUrl": "img-aguacate-103", "producer_id": "1"},
+    {"id": "104", "lotName": "Tomate Cherry Invernadero", "farmName": "Red Ruby", "variety": "Cherry", "harvestDate": "2025-11-20", "createdDate": "2025-10-15T11:00:00Z", "state": "Activo", "imageUrl": "img-tomate-104", "producer_id": "8"},
+    {"id": "105", "lotName": "Fresa Orgánica 2025", "farmName": "Berry Farm", "variety": "Camarosa", "harvestDate": "2025-11-05", "createdDate": "2025-10-20T14:30:00Z", "state": "Cerrado", "imageUrl": "img-fresa-105", "producer_id": "2"},
+    {"id": "106", "lotName": "Caña de Azúcar Lote B", "farmName": "Sweet Cane", "variety": "Cristalina", "harvestDate": "2026-01-01", "createdDate": "2025-10-25T09:00:00Z", "state": "Draft", "imageUrl": "img-cana-106", "producer_id": "8"},
+    {"id": "107", "lotName": "Trigo Duro Panadero", "farmName": "Llanos Verdes", "variety": "Panadero", "harvestDate": "2025-11-25", "createdDate": "2025-10-28T16:00:00Z", "state": "Activo", "imageUrl": "img-trigo-107", "producer_id": "3"},
+    {"id": "108", "lotName": "Mango Kent 2026", "farmName": "El Trópico", "variety": "Kent", "harvestDate": "2026-03-01", "createdDate": "2025-10-29T11:30:00Z", "state": "Draft", "imageUrl": "img-mango-108", "producer_id": "8"},
+    {"id": "109", "lotName": "Papas Nativas Andes", "farmName": "Chacra Huari", "variety": "Huamantanga", "harvestDate": "2025-12-10", "createdDate": "2025-10-30T07:00:00Z", "state": "Activo", "imageUrl": "img-papa-109", "producer_id": "1"},
+    {"id": "110", "lotName": "Cebolla Roja Grande", "farmName": "Valle Seco", "variety": "Red Onion", "harvestDate": "2026-01-20", "createdDate": "2025-10-30T08:30:00Z", "state": "Draft", "imageUrl": "img-cebolla-110", "producer_id": "2"},
+    {"id": "111", "lotName": "Limón Persa Lote C", "farmName": "Citrus Farm", "variety": "Persa", "harvestDate": "2025-11-28", "createdDate": "2025-10-30T09:15:00Z", "state": "Activo", "imageUrl": "img-limon-111", "producer_id": "8"},
+    {"id": "112", "lotName": "Quinua Blanca", "farmName": "Altiplano Alto", "variety": "Real", "harvestDate": "2025-12-05", "createdDate": "2025-10-30T10:00:00Z", "state": "Activo", "imageUrl": "img-quinua-112", "producer_id": "3"},
+    {"id": "113", "lotName": "Vainas de Cacao", "farmName": "Selva Viva", "variety": "Forastero", "harvestDate": "2025-05-01", "createdDate": "2025-04-15T11:00:00Z", "state": "Cerrado", "imageUrl": "img-cacao-113", "producer_id": "4"},
+    {"id": "114", "lotName": "Zanahoria Baby", "farmName": "Huerto Rápido", "variety": "Nantes", "harvestDate": "2025-12-25", "createdDate": "2025-10-30T12:00:00Z", "state": "Draft", "imageUrl": "img-zanahoria-114", "producer_id": "8"},
+    {"id": "115", "lotName": "Avena Integral", "farmName": "Granos del Sur", "variety": "Blanca", "harvestDate": "2025-11-30", "createdDate": "2025-10-30T13:00:00Z", "state": "Activo", "imageUrl": "img-avena-115", "producer_id": "1"},
+    {"id": "116", "lotName": "Pimientos Rojos", "farmName": "Campos Color", "variety": "California", "harvestDate": "2025-11-20", "createdDate": "2025-10-30T14:00:00Z", "state": "Activo", "imageUrl": "img-pimiento-116", "producer_id": "8"},
+    {"id": "117", "lotName": "Arroz Jazmín", "farmName": "Delta Verde", "variety": "Jazmín", "harvestDate": "2026-01-01", "createdDate": "2025-10-30T15:00:00Z", "state": "Draft", "imageUrl": "img-arroz-117", "producer_id": "8"},
+    {"id": "118", "lotName": "Durazno Piel Roja", "farmName": "Frutales del Sol", "variety": "Piel Roja", "harvestDate": "2025-12-10", "createdDate": "2025-10-30T16:00:00Z", "state": "Activo", "imageUrl": "img-durazno-118", "producer_id": "8"},
+    {"id": "119", "lotName": "Aceite de Oliva Extra Virgen", "farmName": "Olivares Sur", "variety": "Picual", "harvestDate": "2025-12-15", "createdDate": "2025-10-30T17:00:00Z", "state": "Draft", "imageUrl": "img-oliva-119", "producer_id": "8"},
+    {"id": "120", "lotName": "Plátano Bellaco", "farmName": "La Palmera", "variety": "Bellaco", "harvestDate": "2025-11-20", "createdDate": "2025-10-30T18:00:00Z", "state": "Activo", "imageUrl": "img-platano-120", "producer_id": "8"}
+  ];
+
+  // Datos de usuarios
+  final List<Map<String, dynamic>> _usersData = [
+    {"firstName": "Juan", "lastName": "Perez", "email": "juan.perez@finca.com", "companyName": "Finca Los Andes", "taxId": "FND12345", "companyOption": "create", "phoneNumber": "19568654", "password": "productor123", "requestedRole": "Producer", "id": "1"},
+    {"firstName": "Maria", "lastName": "Gomez", "email": "maria.gomez@empacadora.com", "companyName": "Empacadora Delta", "taxId": "EMP67890", "companyOption": "join", "password": "procesador123", "phoneNumber": "19568654", "requestedRole": "Processor", "id": "2"},
+    {"firstName": "Ricardo", "lastName": "Flores", "email": "ricardo.flores@control.com", "companyName": "Control Certificado", "taxId": "CTRL11223", "phoneNumber": "19568654", "companyOption": "join", "password": "auditor123", "requestedRole": "Auditor", "id": "3"},
+    {"firstName": "Elena", "lastName": "Soto", "email": "elena.soto@global.com", "companyName": "Admin Global", "taxId": "ADM00001", "companyOption": "create", "password": "admin123", "phoneNumber": "19568654", "requestedRole": "Administrator", "id": "4"},
+    {"firstName": "Luis", "lastName": "García", "email": "luis@admin.com", "companyName": "Finca Los Andes", "taxId": "FND12345", "companyOption": "join", "password": "pass", "phoneNumber": "987654321", "requestedRole": "Supervisor", "id": "5"},
+    {"firstName": "Ana", "lastName": "Diaz", "email": "ana@admin.com", "companyName": "Finca Los Andes", "taxId": "FND12345", "companyOption": "join", "password": "pass", "phoneNumber": "999888777", "requestedRole": "Worker", "id": "6"},
+    {"firstName": "Carlos", "lastName": "Mendoza", "email": "carlos.mendoza@foodchain.com", "companyName": "Empacadora Delta", "phoneNumber": "+51 555 123 789", "requestedRole": "Worker", "password": "admin1", "companyOption": "join", "taxId": "", "id": "7"},
+    {"firstName": "Angelo", "lastName": "Curi", "email": "angelo.curi@test.com", "companyName": "Los Mas Chingones", "taxId": "7875", "companyOption": "create", "password": "123456789", "phoneNumber": "975149459", "requestedRole": "Administrator", "id": "8"},
+    {"firstName": "Sofia", "lastName": "Reyes", "email": "sofia.reyes@lmchingones.com", "companyName": "Los Mas Chingones", "taxId": "7875", "companyOption": "join", "password": "password", "phoneNumber": "912345678", "requestedRole": "Technician", "id": "9"},
+    {"firstName": "Raul", "lastName": "Vargas", "email": "raul.vargas@lmchingones.com", "companyName": "Los Mas Chingones", "taxId": "7875", "companyOption": "join", "password": "password", "phoneNumber": "955443322", "requestedRole": "Supervisor", "id": "10"}
+  ];
+
+  // Datos de pasos
+  final List<Map<String, dynamic>> _stepsData = [
+    {"id": "1", "lotId": "101", "userId": "8", "stepType": "Siembra", "stepDate": "2025-10-02", "stepTime": "10:00", "location": "Los Andes", "observations": "Inicio de siembra de café.", "hash": ""},
+    {"id": "2", "lotId": "101", "userId": "9", "stepType": "Fertilización", "stepDate": "2025-10-15", "stepTime": "14:30", "location": "Los Andes", "observations": "Fertilización orgánica.", "hash": ""},
+    {"id": "3", "lotId": "103", "userId": "5", "stepType": "Riego", "stepDate": "2025-10-20", "stepTime": "08:00", "location": "Hassland", "observations": "Riego por goteo.", "hash": ""},
+    {"id": "4", "lotId": "105", "userId": "7", "stepType": "Cosecha", "stepDate": "2025-11-05", "stepTime": "10:00", "location": "Berry Farm", "observations": "Cosecha completada y lote cerrado.", "hash": ""},
+    {"id": "5", "lotId": "107", "userId": "3", "stepType": "Siembra", "stepDate": "2025-10-29", "stepTime": "09:00", "location": "Llanos Verdes", "observations": "Siembra de trigo.", "hash": ""},
+    {"id": "6", "lotId": "111", "userId": "10", "stepType": "Inspección", "stepDate": "2025-10-30", "stepTime": "09:30", "location": "Citrus Farm", "observations": "Inspección de plagas.", "hash": ""},
+    {"id": "7", "lotId": "104", "userId": "8", "stepType": "Plantación", "stepDate": "2025-10-30", "stepTime": "10:00", "location": "Red Ruby", "observations": "Trasplante de plántulas.", "hash": ""},
+    {"id": "8", "lotId": "112", "userId": "3", "stepType": "Riego", "stepDate": "2025-10-30", "stepTime": "11:00", "location": "Altiplano Alto", "observations": "Riego de quinua.", "hash": ""},
+    {"id": "9", "lotId": "115", "userId": "5", "stepType": "Fumigación", "stepDate": "2025-10-30", "stepTime": "13:30", "location": "Granos del Sur", "observations": "Control de malezas.", "hash": ""},
+    {"id": "10", "lotId": "116", "userId": "8", "stepType": "Poda", "stepDate": "2025-10-30", "stepTime": "14:15", "location": "Campos Color", "observations": "Poda ligera.", "hash": ""},
+    {"id": "11", "lotId": "109", "userId": "6", "stepType": "Inspección", "stepDate": "2025-10-30", "stepTime": "14:45", "location": "Chacra Huari", "observations": "Inspección general.", "hash": ""},
+    {"id": "12", "lotId": "117", "userId": "9", "stepType": "Siembra", "stepDate": "2025-10-30", "stepTime": "15:10", "location": "Delta Verde", "observations": "Siembra de arroz.", "hash": ""},
+    {"id": "13", "lotId": "118", "userId": "8", "stepType": "Riego", "stepDate": "2025-10-30", "stepTime": "16:05", "location": "Frutales del Sol", "observations": "Riego profundo.", "hash": ""},
+    {"id": "14", "lotId": "120", "userId": "8", "stepType": "Inspección", "stepDate": "2025-10-30", "stepTime": "16:15", "location": "La Palmera", "observations": "Inspección final de racimos.", "hash": ""},
+    {"id": "15", "lotId": "101", "userId": "10", "stepType": "Monitoreo", "stepDate": "2025-10-30", "stepTime": "16:20", "location": "Los Andes", "observations": "Monitoreo de humedad.", "hash": ""},
+    {"id": "16", "lotId": "104", "userId": "8", "stepType": "Poda", "stepDate": "2025-10-30", "stepTime": "16:22", "location": "Red Ruby", "observations": "Poda y aclareo de flores.", "hash": ""},
+    {"id": "17", "lotId": "116", "userId": "8", "stepType": "Fumigación", "stepDate": "2025-10-30", "stepTime": "16:25", "location": "Campos Color", "observations": "Fumigación contra ácaros.", "hash": ""},
+    {"id": "18", "lotId": "118", "userId": "8", "stepType": "Abono", "stepDate": "2025-10-30", "stepTime": "16:26", "location": "Frutales del Sol", "observations": "Abono foliar.", "hash": ""},
+    {"id": "19", "lotId": "101", "userId": "8", "stepType": "Poda", "stepDate": "2025-10-30", "stepTime": "16:27", "location": "Los Andes", "observations": "Poda de mantenimiento.", "hash": ""},
+    {"id": "20", "lotId": "118", "userId": "8", "stepType": "Inspección", "stepDate": "2025-10-30", "stepTime": "16:27", "location": "Frutales del Sol", "observations": "Inspección final de la tarde.", "hash": ""},
+    {"id": "21", "lotId": "120", "userId": "9", "stepType": "Productor", "stepDate": "2025-10-30", "stepTime": "05:04", "location": "-12.1470976, -76.9785856", "observations": "", "hash": ""}
+  ];
+
+  // Obtener un batch por ID
+  Future<Batch> getBatchById(String id) async {
+    await Future.delayed(const Duration(seconds: 1));
+    final batchMap = _batchesData.firstWhere(
+      (b) => b['id'] == id,
+      orElse: () => throw Exception('Batch not found'),
+    );
+    return Batch.fromJson(batchMap);
+  }
+
+  // Obtener todos los batches
+  Future<List<Batch>> getAllBatches() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    return _batchesData.map((b) => Batch.fromJson(b)).toList();
+  }
+
+  // Obtener pasos de un lote
+  Future<List<Step>> getStepsForLot(String lotId) async {
+    await Future.delayed(const Duration(seconds: 1));
+    final stepsList = _stepsData.where((s) => s['lotId'] == lotId).toList();
+
+    // Ordenar por fecha y hora
+    stepsList.sort((a, b) {
+      try {
+        final dtA = DateTime.parse("${a['stepDate']}T${a['stepTime']}:00");
+        final dtB = DateTime.parse("${b['stepDate']}T${b['stepTime']}:00");
+        return dtA.compareTo(dtB);
+      } catch (e) {
+        return 0;
+      }
+    });
+
+    return stepsList.map((s) => Step.fromJson(s)).toList();
+  }
+
+  // Obtener un usuario por ID
+  Future<User> getUserById(String id) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final userMap = _usersData.firstWhere(
+      (u) => u['id'] == id,
+      orElse: () => throw Exception('User not found'),
+    );
+    return User.fromJson(userMap);
+  }
+
+  // Obtener todos los usuarios
+  Future<List<User>> getAllUsers() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    return _usersData.map((u) => User.fromJson(u)).toList();
+  }
+
+  // Obtener nombres de compañías únicas
+  Future<List<String>> getUniqueCompanies() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final companies = _usersData
+        .map((u) => u['companyName'] as String)
+        .toSet()
+        .toList();
+    companies.sort();
+    return companies;
+  }
+
+  // Obtener usuarios por compañía
+  Future<List<User>> getUsersByCompany(String companyName) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final usersList = _usersData
+        .where((u) => u['companyName'] == companyName)
+        .toList();
+    return usersList.map((u) => User.fromJson(u)).toList();
+  }
+
+  // Obtener taxId de una compañía
+  Future<String> getCompanyTaxId(String companyName) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final user = _usersData.firstWhere(
+      (u) => u['companyName'] == companyName && (u['taxId'] as String).isNotEmpty,
+      orElse: () => {'taxId': 'N/A'},
+    );
+    return user['taxId'] as String;
+  }
+}
