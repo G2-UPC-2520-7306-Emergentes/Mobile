@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'validation_screen.dart';
 
 class QRScannerScreen extends StatefulWidget {
@@ -9,12 +10,31 @@ class QRScannerScreen extends StatefulWidget {
   State<QRScannerScreen> createState() => _QRScannerScreenState();
 }
 
-class _QRScannerScreenState extends State<QRScannerScreen> {
+class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProviderStateMixin {
   final MobileScannerController _controller = MobileScannerController();
   bool _isProcessing = false;
+  late AnimationController _scanAnimationController;
+  late Animation<double> _scanAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _scanAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _scanAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _scanAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
 
   @override
   void dispose() {
+    _scanAnimationController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -39,13 +59,30 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: PhosphorIcon(
+            PhosphorIcons.caretLeft(PhosphorIconsStyle.bold),
+            color: Colors.white,
+            size: 28,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Escanear Código QR',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
+        actions: [
+          IconButton(
+            icon: PhosphorIcon(
+              PhosphorIcons.flashlight(),
+              color: Colors.white,
+              size: 24,
+            ),
+            onPressed: () => _controller.toggleTorch(),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -62,48 +99,178 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
                   final lotId = _extractLotIdFromUrl(code);
 
-                  if (lotId != null && mounted) {
+                  if (lotId != null) {
                     await _controller.stop();
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => ValidationScreen(lotId: lotId),
-                      ),
-                    );
+                    if (mounted) {
+                      Navigator.of(context).pushReplacement(
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) =>
+                              ValidationScreen(lotId: lotId),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                          transitionDuration: const Duration(milliseconds: 300),
+                        ),
+                      );
+                    }
                   }
                 }
               }
             },
           ),
-          // Overlay con marco de escaneo
+          // Overlay oscuro con recorte
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withValues(alpha: 0.5),
+              BlendMode.srcOut,
+            ),
+            child: Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    backgroundBlendMode: BlendMode.dstOut,
+                  ),
+                ),
+                Center(
+                  child: Container(
+                    width: 250,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Marco de escaneo animado
           Center(
             child: Container(
               width: 250,
               height: 250,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 3),
-                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF22C55E),
+                  width: 3,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Stack(
+                children: [
+                  // Esquinas del marco
+                  ...List.generate(4, (index) {
+                    return Positioned(
+                      top: index < 2 ? -3 : null,
+                      bottom: index >= 2 ? -3 : null,
+                      left: index % 2 == 0 ? -3 : null,
+                      right: index % 2 == 1 ? -3 : null,
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: index < 2
+                                ? const BorderSide(color: Colors.white, width: 4)
+                                : BorderSide.none,
+                            bottom: index >= 2
+                                ? const BorderSide(color: Colors.white, width: 4)
+                                : BorderSide.none,
+                            left: index % 2 == 0
+                                ? const BorderSide(color: Colors.white, width: 4)
+                                : BorderSide.none,
+                            right: index % 2 == 1
+                                ? const BorderSide(color: Colors.white, width: 4)
+                                : BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  // Línea de escaneo animada
+                  AnimatedBuilder(
+                    animation: _scanAnimation,
+                    builder: (context, child) {
+                      return Positioned(
+                        top: 250 * _scanAnimation.value - 1,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: 2,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                const Color(0xFF22C55E).withValues(alpha: 0.8),
+                                Colors.transparent,
+                              ],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF22C55E).withValues(alpha: 0.6),
+                                blurRadius: 8,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ),
-          // Texto de ayuda
+          // Icono QR en el centro
+          Center(
+            child: PhosphorIcon(
+              PhosphorIcons.qrCode(PhosphorIconsStyle.thin),
+              color: Colors.white.withValues(alpha: 0.3),
+              size: 120,
+            ),
+          ),
+          // Texto de ayuda mejorado
           Positioned(
             bottom: 100,
             left: 0,
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                margin: const EdgeInsets.symmetric(horizontal: 40),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'Coloca el código QR dentro del marco',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
+                  color: Colors.black.withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
                   ),
-                  textAlign: TextAlign.center,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PhosphorIcon(
+                      PhosphorIcons.scan(),
+                      color: const Color(0xFF22C55E),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    const Flexible(
+                      child: Text(
+                        'Coloca el código QR dentro del marco',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

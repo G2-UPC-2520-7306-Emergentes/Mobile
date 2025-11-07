@@ -17,12 +17,13 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  late int _selectedIndex;
-
   @override
   void initState() {
     super.initState();
-    _selectedIndex = widget.initialIndex;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<AppStateProvider>(context, listen: false);
+      provider.setSelectedNavIndex(widget.initialIndex);
+    });
   }
 
   final List<Widget> _screens = const [
@@ -33,18 +34,18 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
     final provider = Provider.of<AppStateProvider>(context, listen: false);
     provider.setSelectedNavIndex(index);
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<AppStateProvider>(context);
+    final selectedIndex = provider.selectedNavIndex;
+
     return Scaffold(
       body: IndexedStack(
-        index: _selectedIndex,
+        index: selectedIndex,
         children: _screens,
       ),
       bottomNavigationBar: Container(
@@ -52,7 +53,7 @@ class _MainScreenState extends State<MainScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -66,7 +67,7 @@ class _MainScreenState extends State<MainScreen> {
               children: HomeNavItem.values.asMap().entries.map((entry) {
                 final index = entry.key;
                 final item = entry.value;
-                final isSelected = index == _selectedIndex;
+                final isSelected = index == selectedIndex;
                 return _NavBarItem(
                   item: item,
                   isSelected: isSelected,

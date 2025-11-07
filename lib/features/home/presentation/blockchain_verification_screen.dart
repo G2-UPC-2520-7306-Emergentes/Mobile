@@ -1,10 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/app_state_provider.dart';
 
-class BlockchainVerificationScreen extends StatelessWidget {
+class BlockchainVerificationScreen extends StatefulWidget {
   const BlockchainVerificationScreen({super.key});
+
+  @override
+  State<BlockchainVerificationScreen> createState() => _BlockchainVerificationScreenState();
+}
+
+class _BlockchainVerificationScreenState extends State<BlockchainVerificationScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    );
+
+    _scaleAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutBack,
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,35 +71,27 @@ class BlockchainVerificationScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FBF9),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: PhosphorIcon(
+            PhosphorIcons.caretLeft(PhosphorIconsStyle.bold),
+            color: Colors.black,
+            size: 28,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'Verificación en blockchain',
+          'Verificación Blockchain',
           style: TextStyle(
             color: Colors.black,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             fontSize: 18,
+            letterSpacing: -0.2,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.black),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Configuración próximamente'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -69,32 +99,17 @@ class BlockchainVerificationScreen extends StatelessWidget {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Lock icon
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.lock_outline, size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'LockSimple',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 20),
+                  // Estado con animación
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: _buildStateWidget(state),
+                    ),
                   ),
-                  const SizedBox(height: 32),
-                  // Estado
-                  _buildStateWidget(state),
                   const SizedBox(height: 24),
                   // Descripción
                   Text(
@@ -333,41 +348,63 @@ class BlockchainVerificationScreen extends StatelessWidget {
   }
 
   Widget _buildStateWidget(VerificationState state) {
-    IconData icon;
+    PhosphorIconData icon;
     Color color;
     String text;
 
     switch (state) {
       case VerificationState.verified:
-        icon = Icons.check_circle;
-        color = Colors.green;
+        icon = PhosphorIcons.sealCheck(PhosphorIconsStyle.fill);
+        color = const Color(0xFF22C55E);
         text = 'Verificado';
         break;
       case VerificationState.pending:
-        icon = Icons.warning;
-        color = Colors.amber;
+        icon = PhosphorIcons.clock(PhosphorIconsStyle.fill);
+        color = Colors.amber[700]!;
         text = 'En verificación';
         break;
       case VerificationState.inconsistent:
-        icon = Icons.close;
-        color = Colors.red;
+        icon = PhosphorIcons.warningCircle(PhosphorIconsStyle.fill);
+        color = Colors.red[600]!;
         text = 'Inconsistencia detectada';
         break;
     }
 
-    return Column(
-      children: [
-        Icon(icon, size: 64, color: color),
-        const SizedBox(height: 16),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: color,
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
-        ),
-      ],
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: PhosphorIcon(icon, size: 64, color: color),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: color,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
