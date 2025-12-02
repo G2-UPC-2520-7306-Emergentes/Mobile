@@ -2,10 +2,11 @@ import 'package:flutter/foundation.dart';
 import '../models/batch.dart';
 import '../models/step.dart';
 import '../models/user.dart';
-import '../services/fake_api_service.dart';
+import '../services/api_service.dart';
+import '../models/traceability_event.dart';
 
 class AppStateProvider extends ChangeNotifier {
-  final FakeApiService _apiService = FakeApiService();
+  final ApiService _apiService = ApiService();
 
   // Estado actual
   Batch? _currentBatch;
@@ -18,7 +19,7 @@ class AppStateProvider extends ChangeNotifier {
   List<Step> get currentSteps => _currentSteps;
   List<User> get allUsers => _allUsers;
   int get selectedNavIndex => _selectedNavIndex;
-  FakeApiService get apiService => _apiService;
+  ApiService get apiService => _apiService;
 
   // Setters
   void setSelectedNavIndex(int index) {
@@ -29,19 +30,44 @@ class AppStateProvider extends ChangeNotifier {
   // Cargar datos del lote
   Future<void> loadBatchData(String lotId) async {
     try {
-      // Cargar batch y steps en paralelo
-      final results = await Future.wait([
-        _apiService.getBatchById(lotId),
-        _apiService.getStepsForLot(lotId),
-      ]);
+      // Cargar eventos públicos
+      final events = await _apiService.getPublicEvents(lotId);
 
-      _currentBatch = results[0] as Batch;
-      _currentSteps = results[1] as List<Step>;
+      // Mapear eventos a Steps
+      _currentSteps =
+          events.map((e) {
+            final dateTime = DateTime.tryParse(e.eventDate) ?? DateTime.now();
+            return Step(
+              id: e.eventId,
+              lotId: lotId,
+              userId: e.actorName ?? 'Desconocido',
+              stepType: e.eventType,
+              stepDate: dateTime.toIso8601String().split('T')[0],
+              stepTime: '${dateTime.hour}:${dateTime.minute}',
+              location: e.location?.toString() ?? 'Ubicación no disponible',
+              observations: e.description ?? '',
+              hash: e.txHash ?? '',
+            );
+          }).toList();
 
-      // Cargar todos los usuarios si no están cargados
-      if (_allUsers.isEmpty) {
-        _allUsers = await _apiService.getAllUsers();
-      }
+      // Crear un Batch dummy con la información disponible
+      // En una implementación real, deberíamos tener un endpoint para obtener detalles del lote público
+      _currentBatch = Batch(
+        id: lotId,
+        lotName: 'Lote $lotId', // Placeholder
+        farmName:
+            _currentSteps.isNotEmpty
+                ? _currentSteps.first.userId
+                : 'Desconocido',
+        variety: 'N/A',
+        harvestDate:
+            _currentSteps.isNotEmpty ? _currentSteps.first.stepDate : '',
+        createdDate:
+            _currentSteps.isNotEmpty ? _currentSteps.first.stepDate : '',
+        state: 'Activo', // Asumimos activo si podemos ver el historial
+        imageUrl: '',
+        producerId: '',
+      );
 
       notifyListeners();
     } catch (e) {
