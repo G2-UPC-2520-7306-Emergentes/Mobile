@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../../core/models/step.dart' as model;
@@ -15,7 +14,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   String _selectedFilter = 'Todos';
-  final MapController _mapController = MapController();
+  GoogleMapController? _mapController;
   double _currentZoom = 12.0;
   String _searchQuery = '';
   late AnimationController _animationController;
@@ -63,14 +62,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     setState(() {
       _currentZoom = (_currentZoom + 1).clamp(3.0, 18.0);
     });
-    _mapController.move(_mapController.camera.center, _currentZoom);
+    _mapController?.animateCamera(CameraUpdate.zoomTo(_currentZoom));
   }
 
   void _zoomOut() {
     setState(() {
       _currentZoom = (_currentZoom - 1).clamp(3.0, 18.0);
     });
-    _mapController.move(_mapController.camera.center, _currentZoom);
+    _mapController?.animateCamera(CameraUpdate.zoomTo(_currentZoom));
   }
 
   @override
@@ -90,6 +89,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _animationController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -110,57 +110,46 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
     final filteredSteps = _getFilteredSteps(steps);
     final stepsWithLocation = filteredSteps.where((s) => s.location.isNotEmpty).toList();
-    final markers = <Marker>[];
+    final markers = <Marker>{};
+    final polylinePoints = <LatLng>[];
 
     for (var i = 0; i < filteredSteps.length; i++) {
       final step = filteredSteps[i];
       final latLng = _parseLocation(step.location);
       if (latLng != null) {
+        polylinePoints.add(latLng);
         markers.add(
           Marker(
-            point: latLng,
-            width: 50,
-            height: 50,
-            child: TweenAnimationBuilder<double>(
-              duration: Duration(milliseconds: 400 + (i * 100)),
-              tween: Tween(begin: 0.0, end: 1.0),
-              curve: Curves.easeOutBack,
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: child,
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF22C55E),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF22C55E).withValues(alpha: 0.4),
-                      blurRadius: 8,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: PhosphorIcon(
-                    PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-              ),
+            markerId: MarkerId('marker_$i'),
+            position: latLng,
+            infoWindow: InfoWindow(
+              title: step.stepType,
+              snippet: '${step.stepDate} ${step.stepTime}',
             ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
           ),
         );
       }
     }
 
+    // Crear la polyline para el trazo de ruta
+    final polylines = <Polyline>{};
+    if (polylinePoints.length > 1) {
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('route'),
+          points: polylinePoints,
+          color: const Color(0xFF22C55E),
+          width: 4,
+          patterns: [PatternItem.dash(20), PatternItem.gap(10)],
+        ),
+      );
+    }
+
     LatLng center = const LatLng(-12.0464, -77.0428);
 
     if (markers.isNotEmpty) {
-      center = markers[0].point;
+      center = markers.first.position;
     }
 
     return Scaffold(
@@ -269,19 +258,21 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           Expanded(
             child: Stack(
               children: [
-                FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: center,
-                    initialZoom: _currentZoom,
+                GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: center,
+                    zoom: _currentZoom,
                   ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.flutter_application_1',
-                    ),
-                    MarkerLayer(markers: markers),
-                  ],
+                  markers: markers,
+                  polylines: polylines,
+                  onMapCreated: (controller) {
+                    _mapController = controller;
+                  },
+                  onCameraMove: (position) {
+                    _currentZoom = position.zoom;
+                  },
+                  myLocationButtonEnabled: false,
+                  zoomControlsEnabled: false,
                 ),
                 Positioned(
                   right: 16,
@@ -350,7 +341,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           setState(() {
                             _currentZoom = 14.0;
                           });
-                          _mapController.move(markers[0].point, 14.0);
+                          _mapController?.animateCamera(
+                            CameraUpdate.newLatLngZoom(markers.first.position, 14.0),
+                          );
                         }
                       },
                       borderRadius: BorderRadius.circular(12),
@@ -456,7 +449,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                         setState(() {
                                           _currentZoom = 15.0;
                                         });
-                                        _mapController.move(latLng, 15.0);
+                                        _mapController?.animateCamera(
+                                          CameraUpdate.newLatLngZoom(latLng, 15.0),
+                                        );
                                       }
                                     },
                                     borderRadius: BorderRadius.circular(12),
