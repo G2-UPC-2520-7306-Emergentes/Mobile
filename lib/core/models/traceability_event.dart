@@ -5,6 +5,7 @@ class TraceabilityEventResource {
   final String eventDate;
   final String? actorName;
   final String? enterpriseId;
+  final String? enterpriseName;
   final Location? location;
   final String blockchainStatus;
   final String? transactionHash;
@@ -19,6 +20,7 @@ class TraceabilityEventResource {
     required this.eventDate,
     this.actorName,
     this.enterpriseId,
+    this.enterpriseName,
     this.location,
     required this.blockchainStatus,
     this.transactionHash,
@@ -28,13 +30,24 @@ class TraceabilityEventResource {
   });
 
   factory TraceabilityEventResource.fromJson(Map<String, dynamic> json) {
+    String? entId;
+    String? entName;
+
+    if (json['enterpriseId'] is Map) {
+      entId = json['enterpriseId']['enterpriseId'];
+      entName = json['enterpriseId']['name'];
+    } else if (json['enterpriseId'] is String) {
+      entId = json['enterpriseId'];
+    }
+
     return TraceabilityEventResource(
       id: json['id'] ?? '',
       batchId: json['batchId'] ?? '',
       eventType: json['eventType'] ?? '',
       eventDate: json['eventDate'] ?? '',
       actorName: json['actorName'],
-      enterpriseId: json['enterpriseId'],
+      enterpriseId: entId,
+      enterpriseName: entName,
       location:
           json['location'] != null ? Location.fromJson(json['location']) : null,
       blockchainStatus: json['blockchainStatus'] ?? 'PENDING',
@@ -48,8 +61,6 @@ class TraceabilityEventResource {
   // Getters for backward compatibility
   String get eventId => id;
   String? get description => null; // Description is not in the new API
-  String? get enterpriseName =>
-      enterpriseId; // Mapping enterpriseId to enterpriseName for now
   String? get txHash => transactionHash;
   String? get txUrl => verificationUrl;
 }
