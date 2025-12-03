@@ -11,12 +11,14 @@ class AppStateProvider extends ChangeNotifier {
   // Estado actual
   Batch? _currentBatch;
   List<Step> _currentSteps = [];
+  List<CompanyInfo> _companies = [];
   List<User> _allUsers = [];
   int _selectedNavIndex = 0;
 
   // Getters
   Batch? get currentBatch => _currentBatch;
   List<Step> get currentSteps => _currentSteps;
+  List<CompanyInfo> get companies => _companies;
   List<User> get allUsers => _allUsers;
   int get selectedNavIndex => _selectedNavIndex;
   ApiService get apiService => _apiService;
@@ -50,6 +52,19 @@ class AppStateProvider extends ChangeNotifier {
             );
           }).toList();
 
+      // Extraer empresas únicas
+      final uniqueCompanies = <String, CompanyInfo>{};
+      for (var e in events) {
+        if (e.enterpriseId != null && e.enterpriseName != null) {
+          uniqueCompanies[e.enterpriseId!] = CompanyInfo(
+            id: e.enterpriseId!,
+            name: e.enterpriseName!,
+            logoUrl: e.enterpriseLogoUrl,
+          );
+        }
+      }
+      _companies = uniqueCompanies.values.toList();
+
       // Crear un Batch dummy con la información disponible
       // En una implementación real, deberíamos tener un endpoint para obtener detalles del lote público
       _currentBatch = Batch(
@@ -80,6 +95,7 @@ class AppStateProvider extends ChangeNotifier {
   void clearCurrentBatch() {
     _currentBatch = null;
     _currentSteps = [];
+    _companies = [];
     notifyListeners();
   }
 
@@ -109,4 +125,22 @@ class AppStateProvider extends ChangeNotifier {
     _selectedNavIndex = 2;
     notifyListeners();
   }
+}
+
+class CompanyInfo {
+  final String id;
+  final String name;
+  final String? logoUrl;
+
+  CompanyInfo({required this.id, required this.name, this.logoUrl});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CompanyInfo &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

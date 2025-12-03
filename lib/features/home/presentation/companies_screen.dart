@@ -11,8 +11,9 @@ class CompaniesScreen extends StatefulWidget {
   State<CompaniesScreen> createState() => _CompaniesScreenState();
 }
 
-class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProviderStateMixin {
-  List<String> _companies = [];
+class _CompaniesScreenState extends State<CompaniesScreen>
+    with SingleTickerProviderStateMixin {
+  List<CompanyInfo> _companies = [];
   bool _isLoading = true;
   late AnimationController _animationController;
 
@@ -35,32 +36,22 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
   Future<void> _loadCompanies() async {
     final provider = Provider.of<AppStateProvider>(context, listen: false);
 
-    // Get companies involved in the current batch
-    final steps = provider.currentSteps;
-    final Set<String> companyNames = {};
-
-    for (var step in steps) {
-      try {
-        final user = await provider.apiService.getUserById(step.userId);
-        companyNames.add(user.companyName);
-      } catch (e) {
-        // Skip if user not found
-      }
-    }
-
     setState(() {
-      _companies = companyNames.toList()..sort();
+      _companies = provider.companies;
       _isLoading = false;
     });
     _animationController.forward();
   }
 
   String _getRole(String companyName) {
-    if (companyName.toLowerCase().contains('finca') || companyName.toLowerCase().contains('farm')) {
+    if (companyName.toLowerCase().contains('finca') ||
+        companyName.toLowerCase().contains('farm')) {
       return 'Productor';
-    } else if (companyName.toLowerCase().contains('empacadora') || companyName.toLowerCase().contains('packer')) {
+    } else if (companyName.toLowerCase().contains('empacadora') ||
+        companyName.toLowerCase().contains('packer')) {
       return 'Empacador';
-    } else if (companyName.toLowerCase().contains('distributor') || companyName.toLowerCase().contains('logistics')) {
+    } else if (companyName.toLowerCase().contains('distributor') ||
+        companyName.toLowerCase().contains('logistics')) {
       return 'Distribuidor';
     }
     return 'Socio';
@@ -68,13 +59,21 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
 
   PhosphorIconData _getCompanyIcon(String companyName) {
     final name = companyName.toLowerCase();
-    if (name.contains('finca') || name.contains('farm') || name.contains('agro')) {
+    if (name.contains('finca') ||
+        name.contains('farm') ||
+        name.contains('agro')) {
       return PhosphorIcons.plant(PhosphorIconsStyle.fill);
-    } else if (name.contains('empacadora') || name.contains('packer') || name.contains('pack')) {
+    } else if (name.contains('empacadora') ||
+        name.contains('packer') ||
+        name.contains('pack')) {
       return PhosphorIcons.package(PhosphorIconsStyle.fill);
-    } else if (name.contains('distributor') || name.contains('logistics') || name.contains('transport')) {
+    } else if (name.contains('distributor') ||
+        name.contains('logistics') ||
+        name.contains('transport')) {
       return PhosphorIcons.truck(PhosphorIconsStyle.fill);
-    } else if (name.contains('store') || name.contains('tienda') || name.contains('market')) {
+    } else if (name.contains('store') ||
+        name.contains('tienda') ||
+        name.contains('market')) {
       return PhosphorIcons.storefront(PhosphorIconsStyle.fill);
     } else if (name.contains('fresh') || name.contains('organic')) {
       return PhosphorIcons.leaf(PhosphorIconsStyle.fill);
@@ -84,13 +83,21 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
 
   Color _getCompanyColor(String companyName) {
     final name = companyName.toLowerCase();
-    if (name.contains('finca') || name.contains('farm') || name.contains('agro')) {
+    if (name.contains('finca') ||
+        name.contains('farm') ||
+        name.contains('agro')) {
       return const Color(0xFF16A34A); // Green
-    } else if (name.contains('empacadora') || name.contains('packer') || name.contains('pack')) {
+    } else if (name.contains('empacadora') ||
+        name.contains('packer') ||
+        name.contains('pack')) {
       return const Color(0xFF0891B2); // Cyan
-    } else if (name.contains('distributor') || name.contains('logistics') || name.contains('transport')) {
+    } else if (name.contains('distributor') ||
+        name.contains('logistics') ||
+        name.contains('transport')) {
       return const Color(0xFFEA580C); // Orange
-    } else if (name.contains('store') || name.contains('tienda') || name.contains('market')) {
+    } else if (name.contains('store') ||
+        name.contains('tienda') ||
+        name.contains('market')) {
       return const Color(0xFF7C3AED); // Purple
     } else if (name.contains('fresh') || name.contains('organic')) {
       return const Color(0xFF22C55E); // Primary green
@@ -176,26 +183,49 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              _getCompanyColor(company),
-                              _getCompanyColor(company).withValues(alpha: 0.7),
+                              _getCompanyColor(company.name),
+                              _getCompanyColor(
+                                company.name,
+                              ).withValues(alpha: 0.7),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: _getCompanyColor(company).withValues(alpha: 0.3),
+                              color: _getCompanyColor(
+                                company.name,
+                              ).withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: PhosphorIcon(
-                            _getCompanyIcon(company),
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
+                        child:
+                            company.logoUrl != null &&
+                                    company.logoUrl!.isNotEmpty
+                                ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    company.logoUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: PhosphorIcon(
+                                          _getCompanyIcon(company.name),
+                                          color: Colors.white,
+                                          size: 32,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                )
+                                : Center(
+                                  child: PhosphorIcon(
+                                    _getCompanyIcon(company.name),
+                                    color: Colors.white,
+                                    size: 32,
+                                  ),
+                                ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -203,7 +233,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              company,
+                              company.name,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
@@ -220,7 +250,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  _getRole(company),
+                                  _getRole(company.name),
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontSize: 14,
@@ -240,9 +270,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      if (company.toLowerCase().contains('organic'))
+                      if (company.name.toLowerCase().contains('organic'))
                         _buildTag('Orgánico', PhosphorIcons.leaf()),
-                      if (company.toLowerCase().contains('fair'))
+                      if (company.name.toLowerCase().contains('fair'))
                         _buildTag('Comercio Justo', PhosphorIcons.handshake()),
                       _buildTag('ISO 22000', PhosphorIcons.certificate()),
                     ],
@@ -256,30 +286,45 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
                           onPressed: () {
                             Navigator.of(context).push(
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) =>
-                                    CompanyDetailScreen(companyName: company),
-                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        CompanyDetailScreen(
+                                          companyName: company.name,
+                                        ),
+                                transitionsBuilder: (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                  child,
+                                ) {
                                   return FadeTransition(
                                     opacity: animation,
                                     child: SlideTransition(
                                       position: Tween<Offset>(
                                         begin: const Offset(0.1, 0),
                                         end: Offset.zero,
-                                      ).animate(CurvedAnimation(
-                                        parent: animation,
-                                        curve: Curves.easeOut,
-                                      )),
+                                      ).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeOut,
+                                        ),
+                                      ),
                                       child: child,
                                     ),
                                   );
                                 },
-                                transitionDuration: const Duration(milliseconds: 300),
+                                transitionDuration: const Duration(
+                                  milliseconds: 300,
+                                ),
                               ),
                             );
                           },
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.black,
-                            side: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                            side: BorderSide(
+                              color: Colors.grey[300]!,
+                              width: 1.5,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -297,7 +342,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
                               ),
                               const SizedBox(width: 8),
                               PhosphorIcon(
-                                PhosphorIcons.arrowRight(PhosphorIconsStyle.bold),
+                                PhosphorIcons.arrowRight(
+                                  PhosphorIconsStyle.bold,
+                                ),
                                 size: 16,
                               ),
                             ],
@@ -317,7 +364,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
                                     size: 20,
                                   ),
                                   const SizedBox(width: 12),
-                                  Text('Abriendo blockchain para $company'),
+                                  Text(
+                                    'Abriendo blockchain para ${company.name}',
+                                  ),
                                 ],
                               ),
                               behavior: SnackBarBehavior.floating,
@@ -328,7 +377,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
                           );
                         },
                         style: IconButton.styleFrom(
-                          backgroundColor: const Color(0xFF22C55E).withValues(alpha: 0.1),
+                          backgroundColor: const Color(
+                            0xFF22C55E,
+                          ).withValues(alpha: 0.1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -364,11 +415,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> with SingleTickerProv
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PhosphorIcon(
-            icon,
-            size: 14,
-            color: const Color(0xFF22C55E),
-          ),
+          PhosphorIcon(icon, size: 14, color: const Color(0xFF22C55E)),
           const SizedBox(width: 6),
           Text(
             label,

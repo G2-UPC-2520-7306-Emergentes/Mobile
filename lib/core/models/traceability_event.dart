@@ -6,6 +6,7 @@ class TraceabilityEventResource {
   final String? actorName;
   final String? enterpriseId;
   final String? enterpriseName;
+  final String? enterpriseLogoUrl;
   final Location? location;
   final String blockchainStatus;
   final String? transactionHash;
@@ -21,6 +22,7 @@ class TraceabilityEventResource {
     this.actorName,
     this.enterpriseId,
     this.enterpriseName,
+    this.enterpriseLogoUrl,
     this.location,
     required this.blockchainStatus,
     this.transactionHash,
@@ -32,10 +34,12 @@ class TraceabilityEventResource {
   factory TraceabilityEventResource.fromJson(Map<String, dynamic> json) {
     String? entId;
     String? entName;
+    String? entLogo;
 
     if (json['enterpriseId'] is Map) {
       entId = json['enterpriseId']['enterpriseId'];
       entName = json['enterpriseId']['name'];
+      entLogo = json['enterpriseId']['logoUrl'];
     } else if (json['enterpriseId'] is String) {
       entId = json['enterpriseId'];
     }
@@ -48,6 +52,7 @@ class TraceabilityEventResource {
       actorName: json['actorName'],
       enterpriseId: entId,
       enterpriseName: entName,
+      enterpriseLogoUrl: entLogo,
       location:
           json['location'] != null ? Location.fromJson(json['location']) : null,
       blockchainStatus: json['blockchainStatus'] ?? 'PENDING',
