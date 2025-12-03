@@ -13,7 +13,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
-  String _selectedFilter = 'Todos';
+  String _selectedFilter = 'Movimientos';
   GoogleMapController? _mapController;
   double _currentZoom = 12.0;
   String _searchQuery = '';
@@ -21,16 +21,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
 
   List<model.Step> _getFilteredSteps(List<model.Step> steps) {
-    var filtered = steps;
+    // Solo mostrar pasos que tienen ubicación
+    var filtered = steps.where((s) => s.latitude != null && s.longitude != null).toList();
 
-    // Aplicar filtro por tipo
-    if (_selectedFilter == 'Movimientos') {
-      filtered = filtered.where((s) => s.latitude != null && s.longitude != null).toList();
-    } else if (_selectedFilter == 'Procesos fijos') {
-      filtered = filtered.where((s) => s.latitude == null || s.longitude == null).toList();
-    }
-
-    // Aplicar búsqueda
+    // Aplicar búsqueda por nombre de evento, ubicación u observaciones
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((s) =>
         s.stepType.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -123,9 +117,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       }
     }
 
-    // Crear la polyline para el trazo de ruta
+    // Crear la polyline para el trazo de ruta (solo si NO es "Procesos fijos")
     final polylines = <Polyline>{};
-    if (polylinePoints.length > 1) {
+    if (polylinePoints.length > 1 && _selectedFilter != 'Procesos fijos') {
       polylines.add(
         Polyline(
           polylineId: const PolylineId('route'),
@@ -190,12 +184,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               children: [
                 Row(
                   children: [
-                    _FilterChip(
-                      label: 'Todos',
-                      isSelected: _selectedFilter == 'Todos',
-                      onTap: () => setState(() => _selectedFilter = 'Todos'),
-                    ),
-                    const SizedBox(width: 8),
                     _FilterChip(
                       label: 'Movimientos',
                       isSelected: _selectedFilter == 'Movimientos',
