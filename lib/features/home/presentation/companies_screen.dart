@@ -289,6 +289,7 @@ class _CompaniesScreenState extends State<CompaniesScreen>
                                 pageBuilder:
                                     (context, animation, secondaryAnimation) =>
                                         CompanyDetailScreen(
+                                          companyId: company.id,
                                           companyName: company.name,
                                         ),
                                 transitionsBuilder: (

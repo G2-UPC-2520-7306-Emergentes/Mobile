@@ -2,11 +2,32 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
+import '../models/enterprise_detail.dart';
 import '../models/traceability_event.dart';
 import '../models/user.dart';
 
 class ApiService {
   // Real data for public events
+  Future<EnterpriseDetail> getEnterpriseById(String enterpriseId) async {
+    try {
+      final url = Uri.parse(
+        '${ApiConstants.baseUrl}/iam/enterprises/$enterpriseId',
+      );
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        return EnterpriseDetail.fromJson(data);
+      } else {
+        throw Exception(
+          'Failed to load enterprise details: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Error fetching enterprise details: $e');
+    }
+  }
+
   Future<List<TraceabilityEventResource>> getPublicEvents(
     String batchId,
   ) async {

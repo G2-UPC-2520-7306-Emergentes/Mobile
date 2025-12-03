@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/app_state_provider.dart';
-import '../../../core/models/user.dart';
+import '../../../core/models/enterprise_detail.dart';
 
 class CompanyDetailScreen extends StatefulWidget {
+  // Let's update CompanyDetailScreen to accept `companyId` and `companyName` (for display while loading).
+  final String companyId;
   final String companyName;
 
-  const CompanyDetailScreen({super.key, required this.companyName});
+  const CompanyDetailScreen({
+    super.key,
+    required this.companyId,
+    required this.companyName,
+  });
 
   @override
   State<CompanyDetailScreen> createState() => _CompanyDetailScreenState();
 }
 
 class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
-  List<User> _companyUsers = [];
-  String _taxId = '';
+  EnterpriseDetail? _enterprise;
   bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -24,17 +30,26 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   }
 
   Future<void> _loadCompanyData() async {
-    final provider = Provider.of<AppStateProvider>(context, listen: false);
-    final users = await provider.apiService.getUsersByCompany(
-      widget.companyName,
-    );
-    final taxId = await provider.apiService.getCompanyTaxId(widget.companyName);
+    try {
+      final provider = Provider.of<AppStateProvider>(context, listen: false);
+      final enterprise = await provider.apiService.getEnterpriseById(
+        widget.companyId,
+      );
 
-    setState(() {
-      _companyUsers = users;
-      _taxId = taxId;
-      _isLoading = false;
-    });
+      if (mounted) {
+        setState(() {
+          _enterprise = enterprise;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -56,23 +71,12 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
             fontSize: 18,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.black),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Configuración próximamente'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
+              : _error != null
+              ? Center(child: Text('Error: $_error'))
               : SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,16 +101,31 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                                 color: Colors.white.withOpacity(0.2),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
-                                Icons.eco,
-                                size: 40,
-                                color: Colors.white,
-                              ),
+                              child:
+                                  _enterprise?.logoUrl != null
+                                      ? ClipOval(
+                                        child: Image.network(
+                                          _enterprise!.logoUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Icon(
+                                                    Icons.eco,
+                                                    size: 40,
+                                                    color: Colors.white,
+                                                  ),
+                                        ),
+                                      )
+                                      : const Icon(
+                                        Icons.eco,
+                                        size: 40,
+                                        color: Colors.white,
+                                      ),
                             ),
                             const SizedBox(height: 12),
-                            const Text(
-                              'COMPANY',
-                              style: TextStyle(
+                            Text(
+                              _enterprise?.country?.toUpperCase() ?? 'COMPANY',
+                              style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 12,
                                 letterSpacing: 2,
@@ -124,7 +143,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.companyName,
+                            _enterprise?.name ?? widget.companyName,
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
@@ -132,7 +151,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'AgroFresh is a leading provider of innovative post-harvest solutions for the fresh produce industry, dedicated to reducing food waste and enhancing quality.',
+                            _enterprise?.description ??
+                                'No description available.',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14,
@@ -144,36 +164,31 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     ),
                     const SizedBox(height: 24),
                     // Certificaciones
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      color: Colors.white,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Certificaciones de calidad',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                    if (_enterprise?.certifications.isNotEmpty ?? false)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        color: Colors.white,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Certificaciones de calidad',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          _CertificationItem(
-                            title: 'Quality Management',
-                            subtitle: 'ISO 9001',
-                          ),
-                          _CertificationItem(
-                            title: 'Good Agricultural',
-                            subtitle: 'GlobalG.A.P.',
-                          ),
-                          _CertificationItem(
-                            title: 'Hazard Analysis Critical',
-                            subtitle: 'HACCP',
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            ..._enterprise!.certifications.map(
+                              (cert) => _CertificationItem(
+                                title: cert,
+                                subtitle: 'Verified',
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 16),
                     // Información básica
                     Container(
@@ -191,20 +206,24 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _InfoRow(
-                            label: 'www.agrofresh.com',
-                            icon: Icons.language,
-                          ),
+                          if (_enterprise?.website != null)
+                            _InfoRow(
+                              label: _enterprise!.website!,
+                              icon: Icons.language,
+                            ),
                           const SizedBox(height: 12),
-                          _InfoRow(
-                            label: 'Fundación: 1995',
-                            icon: Icons.calendar_today,
-                          ),
+                          if (_enterprise?.foundationYear != null)
+                            _InfoRow(
+                              label:
+                                  'Fundación: ${_enterprise!.foundationYear}',
+                              icon: Icons.calendar_today,
+                            ),
                           const SizedBox(height: 12),
-                          _InfoRow(
-                            label: 'País de origen: España',
-                            icon: Icons.flag,
-                          ),
+                          if (_enterprise?.country != null)
+                            _InfoRow(
+                              label: 'País de origen: ${_enterprise!.country}',
+                              icon: Icons.flag,
+                            ),
                         ],
                       ),
                     ),
