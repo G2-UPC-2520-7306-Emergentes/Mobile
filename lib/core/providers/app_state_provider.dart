@@ -15,6 +15,18 @@ class AppStateProvider extends ChangeNotifier {
   List<User> _allUsers = [];
   int _selectedNavIndex = 0;
 
+  BlockchainStatus _parseBlockchainStatus(String? status) {
+    switch (status?.toUpperCase()) {
+      case 'CONFIRMED':
+        return BlockchainStatus.confirmed;
+      case 'FAILED':
+        return BlockchainStatus.failed;
+      case 'PENDING':
+      default:
+        return BlockchainStatus.pending;
+    }
+  }
+
   // Getters
   Batch? get currentBatch => _currentBatch;
   List<Step> get currentSteps => _currentSteps;
@@ -45,10 +57,13 @@ class AppStateProvider extends ChangeNotifier {
               userId: e.actorName ?? 'Desconocido',
               stepType: e.eventType,
               stepDate: dateTime.toIso8601String().split('T')[0],
-              stepTime: '${dateTime.hour}:${dateTime.minute}',
+              stepTime: '${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}',
               location: e.location?.toString() ?? 'Ubicación no disponible',
+              latitude: e.location?.latitude,
+              longitude: e.location?.longitude,
               observations: e.description ?? '',
               hash: e.txHash ?? '',
+              blockchainStatus: _parseBlockchainStatus(e.blockchainStatus),
             );
           }).toList();
 

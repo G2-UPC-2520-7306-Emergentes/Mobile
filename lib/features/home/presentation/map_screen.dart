@@ -25,9 +25,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
     // Aplicar filtro por tipo
     if (_selectedFilter == 'Movimientos') {
-      filtered = filtered.where((s) => s.location.contains(',')).toList();
+      filtered = filtered.where((s) => s.latitude != null && s.longitude != null).toList();
     } else if (_selectedFilter == 'Procesos fijos') {
-      filtered = filtered.where((s) => !s.location.contains(',') && s.location.isNotEmpty).toList();
+      filtered = filtered.where((s) => s.latitude == null || s.longitude == null).toList();
     }
 
     // Aplicar búsqueda
@@ -42,18 +42,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     return filtered;
   }
 
-  LatLng? _parseLocation(String location) {
-    if (location.contains(',')) {
-      final parts = location.split(',');
-      if (parts.length == 2) {
-        try {
-          final lat = double.parse(parts[0].trim());
-          final lng = double.parse(parts[1].trim());
-          return LatLng(lat, lng);
-        } catch (e) {
-          return null;
-        }
-      }
+  LatLng? _getLatLng(model.Step step) {
+    if (step.latitude != null && step.longitude != null) {
+      return LatLng(step.latitude!, step.longitude!);
     }
     return null;
   }
@@ -109,13 +100,13 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     }
 
     final filteredSteps = _getFilteredSteps(steps);
-    final stepsWithLocation = filteredSteps.where((s) => s.location.isNotEmpty).toList();
+    final stepsWithLocation = filteredSteps.where((s) => s.latitude != null && s.longitude != null).toList();
     final markers = <Marker>{};
     final polylinePoints = <LatLng>[];
 
     for (var i = 0; i < filteredSteps.length; i++) {
       final step = filteredSteps[i];
-      final latLng = _parseLocation(step.location);
+      final latLng = _getLatLng(step);
       if (latLng != null) {
         polylinePoints.add(latLng);
         markers.add(
@@ -369,6 +360,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   initialChildSize: 0.18,
                   minChildSize: 0.12,
                   maxChildSize: 0.6,
+                  snap: true,
+                  snapSizes: const [0.18, 0.4, 0.6],
                   builder: (context, scrollController) {
                     return Container(
                       decoration: BoxDecoration(
@@ -382,79 +375,68 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
-                      child: Column(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            width: 36,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
+                      child: CustomScrollView(
+                        controller: scrollController,
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Column(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(6),
+                                  margin: const EdgeInsets.symmetric(vertical: 8),
+                                  width: 40,
+                                  height: 4,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF22C55E).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: PhosphorIcon(
-                                    PhosphorIcons.mapTrifold(PhosphorIconsStyle.fill),
-                                    color: const Color(0xFF22C55E),
-                                    size: 18,
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(2),
                                   ),
                                 ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  'Eventos con ubicación',
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 15,
-                                        letterSpacing: -0.3,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF22C55E).withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: PhosphorIcon(
+                                          PhosphorIcons.mapTrifold(PhosphorIconsStyle.fill),
+                                          color: const Color(0xFF22C55E),
+                                          size: 18,
+                                        ),
                                       ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        'Eventos con ubicación',
+                                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 15,
+                                              letterSpacing: -0.3,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(height: 12),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          Expanded(
-                            child: ListView.builder(
-                              controller: scrollController,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              itemCount: stepsWithLocation.length,
-                              itemBuilder: (context, index) {
-                                final step = stepsWithLocation[index];
-                                return TweenAnimationBuilder<double>(
-                                  duration: Duration(milliseconds: 300 + (index * 50)),
-                                  tween: Tween(begin: 0.0, end: 1.0),
-                                  curve: Curves.easeOut,
-                                  builder: (context, value, child) {
-                                    return Opacity(
-                                      opacity: value,
-                                      child: Transform.translate(
-                                        offset: Offset(0, 20 * (1 - value)),
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                  child: InkWell(
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final step = stepsWithLocation[index];
+                                  return GestureDetector(
                                     onTap: () {
-                                      final latLng = _parseLocation(step.location);
+                                      final latLng = _getLatLng(step);
                                       if (latLng != null) {
-                                        setState(() {
-                                          _currentZoom = 15.0;
-                                        });
                                         _mapController?.animateCamera(
                                           CameraUpdate.newLatLngZoom(latLng, 15.0),
                                         );
                                       }
                                     },
-                                    borderRadius: BorderRadius.circular(12),
                                     child: Container(
                                       margin: const EdgeInsets.only(bottom: 10),
                                       padding: const EdgeInsets.all(14),
@@ -526,10 +508,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                         ],
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                                childCount: stepsWithLocation.length,
+                              ),
                             ),
+                          ),
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 20),
                           ),
                         ],
                       ),

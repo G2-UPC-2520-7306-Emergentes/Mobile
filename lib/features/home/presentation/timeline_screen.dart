@@ -132,7 +132,7 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
         actions: [
           IconButton(
             icon: PhosphorIcon(
-              PhosphorIcons.code(PhosphorIconsStyle.bold),
+              PhosphorIcons.link(PhosphorIconsStyle.bold),
               color: const Color(0xFF22C55E),
               size: 24,
             ),
@@ -269,46 +269,27 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                     },
                   ),
           ),
-          // Footer con botones (compacto)
+          // Footer con botones
           FadeTransition(
             opacity: _animationController,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
                   ),
                 ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    children: [
-                      PhosphorIcon(
-                        PhosphorIcons.sealCheck(PhosphorIconsStyle.fill),
-                        color: const Color(0xFF22C55E),
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'Sello verificado',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          color: Color(0xFF22C55E),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
-                    height: 44,
+                    height: 48,
                     child: ElevatedButton(
                       onPressed: () {
                         provider.navigateToMap();
@@ -317,7 +298,7 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                         backgroundColor: const Color(0xFF22C55E),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 0,
                       ),
@@ -325,17 +306,16 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           PhosphorIcon(
-                            PhosphorIcons.mapPin(PhosphorIconsStyle.bold),
+                            PhosphorIcons.mapTrifold(PhosphorIconsStyle.fill),
                             color: Colors.white,
-                            size: 18,
+                            size: 20,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 10),
                           const Text(
-                            'Ver Mapa',
+                            'Ver recorrido en mapa',
                             style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              letterSpacing: 0.2,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
                             ),
                           ),
                         ],
@@ -345,32 +325,33 @@ class _TimelineScreenState extends State<TimelineScreen> with SingleTickerProvid
                   const SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
-                    height: 44,
+                    height: 48,
                     child: OutlinedButton(
                       onPressed: () {
                         provider.navigateToCompanies();
                       },
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.black,
+                        foregroundColor: Colors.grey[800],
                         side: BorderSide(color: Colors.grey[300]!, width: 1.5),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           PhosphorIcon(
-                            PhosphorIcons.buildings(),
-                            color: Colors.black,
-                            size: 18,
+                            PhosphorIcons.buildings(PhosphorIconsStyle.fill),
+                            color: Colors.grey[700],
+                            size: 20,
                           ),
-                          const SizedBox(width: 8),
-                          const Text(
+                          const SizedBox(width: 10),
+                          Text(
                             'Empresas participantes',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                              fontSize: 15,
+                              color: Colors.grey[800],
                             ),
                           ),
                         ],
@@ -470,14 +451,21 @@ class _TimelineItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      step.stepType,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: Colors.black,
-                        letterSpacing: -0.2,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            step.stepType,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Colors.black,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                        ),
+                        _BlockchainStatusBadge(status: step.blockchainStatus),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -553,6 +541,72 @@ class _TimelineItem extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BlockchainStatusBadge extends StatelessWidget {
+  final model.BlockchainStatus status;
+
+  const _BlockchainStatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    Color backgroundColor;
+    Color textColor;
+    Color iconColor;
+    String text;
+    PhosphorIconData icon;
+
+    switch (status) {
+      case model.BlockchainStatus.confirmed:
+        backgroundColor = const Color(0xFF22C55E).withValues(alpha: 0.1);
+        textColor = const Color(0xFF22C55E);
+        iconColor = const Color(0xFF22C55E);
+        text = 'Confirmado';
+        icon = PhosphorIcons.checkCircle(PhosphorIconsStyle.fill);
+        break;
+      case model.BlockchainStatus.pending:
+        backgroundColor = Colors.orange.withValues(alpha: 0.1);
+        textColor = Colors.orange[700]!;
+        iconColor = Colors.orange[600]!;
+        text = 'Pendiente';
+        icon = PhosphorIcons.clock(PhosphorIconsStyle.fill);
+        break;
+      case model.BlockchainStatus.failed:
+        backgroundColor = Colors.red.withValues(alpha: 0.1);
+        textColor = Colors.red[700]!;
+        iconColor = Colors.red[600]!;
+        text = 'Fallido';
+        icon = PhosphorIcons.xCircle(PhosphorIconsStyle.fill);
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PhosphorIcon(
+            icon,
+            size: 12,
+            color: iconColor,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

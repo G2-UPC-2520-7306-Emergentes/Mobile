@@ -7,24 +7,56 @@ import '../models/traceability_event.dart';
 import '../models/user.dart';
 
 class ApiService {
-  // Real data for public events
-  Future<EnterpriseDetail> getEnterpriseById(String enterpriseId) async {
+  // Fetch all enterprises from fake API
+  Future<List<EnterpriseDetail>> getAllEnterprises() async {
     try {
       final url = Uri.parse(
-        '${ApiConstants.baseUrl}/iam/enterprises/$enterpriseId',
+        '${ApiConstants.fakeEnterpriseApi}/enterprise',
       );
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        final data = json.decode(utf8.decode(response.bodyBytes));
-        return EnterpriseDetail.fromJson(data);
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        return data.map((e) => EnterpriseDetail.fromJson(e)).toList();
       } else {
         throw Exception(
-          'Failed to load enterprise details: ${response.statusCode}',
+          'Failed to load enterprises: ${response.statusCode}',
         );
       }
     } catch (e) {
-      throw Exception('Error fetching enterprise details: $e');
+      throw Exception('Error fetching enterprises: $e');
+    }
+  }
+
+  // Fetch enterprise by ID - tries fake API first, then real API
+  Future<EnterpriseDetail> getEnterpriseById(String enterpriseId) async {
+    try {
+      // First try the fake API
+      final allEnterprises = await getAllEnterprises();
+      final enterprise = allEnterprises.firstWhere(
+        (e) => e.id == enterpriseId,
+        orElse: () => throw Exception('Enterprise not found in fake API'),
+      );
+      return enterprise;
+    } catch (e) {
+      // Fallback to real API
+      try {
+        final url = Uri.parse(
+          '${ApiConstants.baseUrl}/iam/enterprises/$enterpriseId',
+        );
+        final response = await http.get(url);
+
+        if (response.statusCode == 200) {
+          final data = json.decode(utf8.decode(response.bodyBytes));
+          return EnterpriseDetail.fromJson(data);
+        } else {
+          throw Exception(
+            'Failed to load enterprise details: ${response.statusCode}',
+          );
+        }
+      } catch (e2) {
+        throw Exception('Error fetching enterprise details: $e2');
+      }
     }
   }
 

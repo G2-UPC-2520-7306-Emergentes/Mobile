@@ -1,3 +1,9 @@
+enum BlockchainStatus {
+  pending,
+  confirmed,
+  failed,
+}
+
 class Step {
   final String id;
   final String lotId;
@@ -6,8 +12,11 @@ class Step {
   final String stepDate;
   final String stepTime;
   final String location;
+  final double? latitude;
+  final double? longitude;
   final String observations;
   final String hash;
+  final BlockchainStatus blockchainStatus;
 
   Step({
     required this.id,
@@ -17,9 +26,24 @@ class Step {
     required this.stepDate,
     required this.stepTime,
     required this.location,
+    this.latitude,
+    this.longitude,
     required this.observations,
     required this.hash,
+    this.blockchainStatus = BlockchainStatus.pending,
   });
+
+  static BlockchainStatus _parseBlockchainStatus(String? status) {
+    switch (status?.toUpperCase()) {
+      case 'CONFIRMED':
+        return BlockchainStatus.confirmed;
+      case 'FAILED':
+        return BlockchainStatus.failed;
+      case 'PENDING':
+      default:
+        return BlockchainStatus.pending;
+    }
+  }
 
   factory Step.fromJson(Map<String, dynamic> json) {
     return Step(
@@ -30,8 +54,11 @@ class Step {
       stepDate: json['stepDate'] as String,
       stepTime: json['stepTime'] as String,
       location: json['location'] as String,
+      latitude: json['latitude'] as double?,
+      longitude: json['longitude'] as double?,
       observations: json['observations'] as String,
       hash: json['hash'] as String,
+      blockchainStatus: _parseBlockchainStatus(json['blockchainStatus'] as String?),
     );
   }
 
@@ -44,8 +71,11 @@ class Step {
       'stepDate': stepDate,
       'stepTime': stepTime,
       'location': location,
+      'latitude': latitude,
+      'longitude': longitude,
       'observations': observations,
       'hash': hash,
+      'blockchainStatus': blockchainStatus.name.toUpperCase(),
     };
   }
 }

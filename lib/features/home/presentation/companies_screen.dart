@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/app_state_provider.dart';
+import '../../../core/models/enterprise_detail.dart';
 import 'company_detail_screen.dart';
 
 class CompaniesScreen extends StatefulWidget {
@@ -13,8 +14,9 @@ class CompaniesScreen extends StatefulWidget {
 
 class _CompaniesScreenState extends State<CompaniesScreen>
     with SingleTickerProviderStateMixin {
-  List<CompanyInfo> _companies = [];
+  List<EnterpriseDetail> _enterprises = [];
   bool _isLoading = true;
+  String? _error;
   late AnimationController _animationController;
 
   @override
@@ -30,87 +32,212 @@ class _CompaniesScreenState extends State<CompaniesScreen>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _loadCompanies();
+    _loadEnterprises();
   }
 
-  Future<void> _loadCompanies() async {
-    final provider = Provider.of<AppStateProvider>(context, listen: false);
+  Future<void> _loadEnterprises() async {
+    try {
+      final provider = Provider.of<AppStateProvider>(context, listen: false);
+      final enterprises = await provider.apiService.getAllEnterprises();
 
-    setState(() {
-      _companies = provider.companies;
-      _isLoading = false;
-    });
-    _animationController.forward();
+      if (mounted) {
+        setState(() {
+          _enterprises = enterprises;
+          _isLoading = false;
+        });
+        _animationController.forward();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   String _getRole(String companyName) {
-    if (companyName.toLowerCase().contains('finca') ||
-        companyName.toLowerCase().contains('farm')) {
+    final name = companyName.toLowerCase();
+    if (name.contains('finca') || name.contains('farm') || name.contains('agro')) {
       return 'Productor';
-    } else if (companyName.toLowerCase().contains('empacadora') ||
-        companyName.toLowerCase().contains('packer')) {
+    } else if (name.contains('empacadora') || name.contains('packer') || name.contains('pack')) {
       return 'Empacador';
-    } else if (companyName.toLowerCase().contains('distributor') ||
-        companyName.toLowerCase().contains('logistics')) {
+    } else if (name.contains('distributor') || name.contains('logistics') || name.contains('transport')) {
       return 'Distribuidor';
+    } else if (name.contains('ecovida') || name.contains('alimentos')) {
+      return 'Productor de Alimentos';
+    } else if (name.contains('tech') || name.contains('global') || name.contains('innovacion')) {
+      return 'Tecnología';
+    } else if (name.contains('constructora') || name.contains('águila')) {
+      return 'Construcción';
+    } else if (name.contains('beta') || name.contains('soluciones')) {
+      return 'Soluciones Empresariales';
+    } else if (name.contains('acme') || name.contains('corp')) {
+      return 'Corporativo';
     }
     return 'Socio';
   }
 
   PhosphorIconData _getCompanyIcon(String companyName) {
     final name = companyName.toLowerCase();
-    if (name.contains('finca') ||
-        name.contains('farm') ||
-        name.contains('agro')) {
+    if (name.contains('finca') || name.contains('farm') || name.contains('agro')) {
       return PhosphorIcons.plant(PhosphorIconsStyle.fill);
-    } else if (name.contains('empacadora') ||
-        name.contains('packer') ||
-        name.contains('pack')) {
+    } else if (name.contains('empacadora') || name.contains('packer') || name.contains('pack')) {
       return PhosphorIcons.package(PhosphorIconsStyle.fill);
-    } else if (name.contains('distributor') ||
-        name.contains('logistics') ||
-        name.contains('transport')) {
+    } else if (name.contains('distributor') || name.contains('logistics') || name.contains('transport')) {
       return PhosphorIcons.truck(PhosphorIconsStyle.fill);
-    } else if (name.contains('store') ||
-        name.contains('tienda') ||
-        name.contains('market')) {
+    } else if (name.contains('store') || name.contains('tienda') || name.contains('market')) {
       return PhosphorIcons.storefront(PhosphorIconsStyle.fill);
-    } else if (name.contains('fresh') || name.contains('organic')) {
+    } else if (name.contains('ecovida') || name.contains('alimentos') || name.contains('organic')) {
       return PhosphorIcons.leaf(PhosphorIconsStyle.fill);
+    } else if (name.contains('tech') || name.contains('global') || name.contains('innovacion')) {
+      return PhosphorIcons.circuitry(PhosphorIconsStyle.fill);
+    } else if (name.contains('constructora') || name.contains('águila')) {
+      return PhosphorIcons.hardHat(PhosphorIconsStyle.fill);
+    } else if (name.contains('beta') || name.contains('soluciones')) {
+      return PhosphorIcons.briefcase(PhosphorIconsStyle.fill);
+    } else if (name.contains('acme') || name.contains('corp')) {
+      return PhosphorIcons.buildings(PhosphorIconsStyle.fill);
     }
     return PhosphorIcons.buildings(PhosphorIconsStyle.fill);
   }
 
   Color _getCompanyColor(String companyName) {
     final name = companyName.toLowerCase();
-    if (name.contains('finca') ||
-        name.contains('farm') ||
-        name.contains('agro')) {
-      return const Color(0xFF16A34A); // Green
-    } else if (name.contains('empacadora') ||
-        name.contains('packer') ||
-        name.contains('pack')) {
-      return const Color(0xFF0891B2); // Cyan
-    } else if (name.contains('distributor') ||
-        name.contains('logistics') ||
-        name.contains('transport')) {
-      return const Color(0xFFEA580C); // Orange
-    } else if (name.contains('store') ||
-        name.contains('tienda') ||
-        name.contains('market')) {
-      return const Color(0xFF7C3AED); // Purple
-    } else if (name.contains('fresh') || name.contains('organic')) {
-      return const Color(0xFF22C55E); // Primary green
+    if (name.contains('finca') || name.contains('farm') || name.contains('agro')) {
+      return const Color(0xFF16A34A);
+    } else if (name.contains('empacadora') || name.contains('packer') || name.contains('pack')) {
+      return const Color(0xFF0891B2);
+    } else if (name.contains('distributor') || name.contains('logistics') || name.contains('transport')) {
+      return const Color(0xFFEA580C);
+    } else if (name.contains('ecovida') || name.contains('alimentos') || name.contains('organic')) {
+      return const Color(0xFF22C55E);
+    } else if (name.contains('tech') || name.contains('global') || name.contains('innovacion')) {
+      return const Color(0xFF6366F1);
+    } else if (name.contains('constructora') || name.contains('águila')) {
+      return const Color(0xFFDC2626);
+    } else if (name.contains('beta') || name.contains('soluciones')) {
+      return const Color(0xFF0891B2);
+    } else if (name.contains('acme') || name.contains('corp')) {
+      return const Color(0xFF7C3AED);
     }
-    return const Color(0xFF22C55E); // Default
+    return const Color(0xFF22C55E);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FBF9),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: PhosphorIcon(
+              PhosphorIcons.caretLeft(PhosphorIconsStyle.bold),
+              color: Colors.black,
+              size: 28,
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: const Text(
+            'Empresas Participantes',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(
+                color: Color(0xFF22C55E),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Cargando empresas...',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FBF9),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: PhosphorIcon(
+              PhosphorIcons.caretLeft(PhosphorIconsStyle.bold),
+              color: Colors.black,
+              size: 28,
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: const Text(
+            'Empresas Participantes',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PhosphorIcon(
+                  PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+                  color: Colors.orange,
+                  size: 48,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No se pudieron cargar las empresas',
+                  style: TextStyle(
+                    color: Colors.grey[800],
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _isLoading = true;
+                      _error = null;
+                    });
+                    _loadEnterprises();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF22C55E),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Reintentar'),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -139,9 +266,9 @@ class _CompaniesScreenState extends State<CompaniesScreen>
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _companies.length,
+        itemCount: _enterprises.length,
         itemBuilder: (context, index) {
-          final company = _companies[index];
+          final enterprise = _enterprises[index];
           return TweenAnimationBuilder<double>(
             duration: Duration(milliseconds: 300 + (index * 50)),
             tween: Tween(begin: 0.0, end: 1.0),
@@ -179,53 +306,70 @@ class _CompaniesScreenState extends State<CompaniesScreen>
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              _getCompanyColor(company.name),
-                              _getCompanyColor(
-                                company.name,
-                              ).withValues(alpha: 0.7),
-                            ],
-                          ),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.grey[200]!,
+                            width: 1,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: _getCompanyColor(
-                                company.name,
-                              ).withValues(alpha: 0.3),
+                              color: _getCompanyColor(enterprise.name).withValues(alpha: 0.2),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child:
-                            company.logoUrl != null &&
-                                    company.logoUrl!.isNotEmpty
-                                ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    company.logoUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Center(
-                                        child: PhosphorIcon(
-                                          _getCompanyIcon(company.name),
-                                          color: Colors.white,
-                                          size: 32,
+                        child: enterprise.logoUrl != null && enterprise.logoUrl!.isNotEmpty
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(11),
+                                child: Image.network(
+                                  enterprise.logoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            _getCompanyColor(enterprise.name),
+                                            _getCompanyColor(enterprise.name).withValues(alpha: 0.7),
+                                          ],
                                         ),
-                                      );
-                                    },
+                                        borderRadius: BorderRadius.circular(11),
+                                      ),
+                                      child: Center(
+                                        child: PhosphorIcon(
+                                          _getCompanyIcon(enterprise.name),
+                                          color: Colors.white,
+                                          size: 28,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              )
+                            : Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      _getCompanyColor(enterprise.name),
+                                      _getCompanyColor(enterprise.name).withValues(alpha: 0.7),
+                                    ],
                                   ),
-                                )
-                                : Center(
+                                  borderRadius: BorderRadius.circular(11),
+                                ),
+                                child: Center(
                                   child: PhosphorIcon(
-                                    _getCompanyIcon(company.name),
+                                    _getCompanyIcon(enterprise.name),
                                     color: Colors.white,
-                                    size: 32,
+                                    size: 28,
                                   ),
                                 ),
+                              ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -233,7 +377,7 @@ class _CompaniesScreenState extends State<CompaniesScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              company.name,
+                              enterprise.name,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
@@ -249,12 +393,14 @@ class _CompaniesScreenState extends State<CompaniesScreen>
                                   color: Colors.grey[500],
                                 ),
                                 const SizedBox(width: 6),
-                                Text(
-                                  _getRole(company.name),
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
+                                Expanded(
+                                  child: Text(
+                                    _getRole(enterprise.name),
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -264,40 +410,31 @@ class _CompaniesScreenState extends State<CompaniesScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  // Tags
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      if (company.name.toLowerCase().contains('organic'))
-                        _buildTag('Orgánico', PhosphorIcons.leaf()),
-                      if (company.name.toLowerCase().contains('fair'))
-                        _buildTag('Comercio Justo', PhosphorIcons.handshake()),
-                      _buildTag('ISO 22000', PhosphorIcons.certificate()),
-                    ],
-                  ),
+                  const SizedBox(height: 14),
+                  // Certificaciones como tags
+                  if (enterprise.certifications.isNotEmpty)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: enterprise.certifications.take(2).map((cert) {
+                        return _buildTag(cert, PhosphorIcons.certificate());
+                      }).toList(),
+                    ),
                   const SizedBox(height: 16),
                   // Botones
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
+                        child: ElevatedButton(
                           onPressed: () {
                             Navigator.of(context).push(
                               PageRouteBuilder(
-                                pageBuilder:
-                                    (context, animation, secondaryAnimation) =>
-                                        CompanyDetailScreen(
-                                          companyId: company.id,
-                                          companyName: company.name,
-                                        ),
-                                transitionsBuilder: (
-                                  context,
-                                  animation,
-                                  secondaryAnimation,
-                                  child,
-                                ) {
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    CompanyDetailScreen(
+                                      companyId: enterprise.id,
+                                      companyName: enterprise.name,
+                                    ),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                   return FadeTransition(
                                     opacity: animation,
                                     child: SlideTransition(
@@ -314,22 +451,18 @@ class _CompaniesScreenState extends State<CompaniesScreen>
                                     ),
                                   );
                                 },
-                                transitionDuration: const Duration(
-                                  milliseconds: 300,
-                                ),
+                                transitionDuration: const Duration(milliseconds: 300),
                               ),
                             );
                           },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.black,
-                            side: BorderSide(
-                              color: Colors.grey[300]!,
-                              width: 1.5,
-                            ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF22C55E),
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 12),
+                            elevation: 0,
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -343,52 +476,53 @@ class _CompaniesScreenState extends State<CompaniesScreen>
                               ),
                               const SizedBox(width: 8),
                               PhosphorIcon(
-                                PhosphorIcons.arrowRight(
-                                  PhosphorIconsStyle.bold,
-                                ),
+                                PhosphorIcons.arrowRight(PhosphorIconsStyle.bold),
                                 size: 16,
+                                color: Colors.white,
                               ),
                             ],
                           ),
                         ),
                       ),
                       const SizedBox(width: 10),
-                      IconButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Row(
-                                children: [
-                                  PhosphorIcon(
-                                    PhosphorIcons.link(),
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'Abriendo blockchain para ${company.name}',
-                                  ),
-                                ],
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          );
-                        },
-                        style: IconButton.styleFrom(
-                          backgroundColor: const Color(
-                            0xFF22C55E,
-                          ).withValues(alpha: 0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF22C55E).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        icon: PhosphorIcon(
-                          PhosphorIcons.link(PhosphorIconsStyle.bold),
-                          color: const Color(0xFF22C55E),
-                          size: 20,
+                        child: IconButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    PhosphorIcon(
+                                      PhosphorIcons.link(PhosphorIconsStyle.bold),
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Verificando ${enterprise.name} en blockchain...',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: const Color(0xFF22C55E),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
+                          },
+                          icon: PhosphorIcon(
+                            PhosphorIcons.link(PhosphorIconsStyle.bold),
+                            color: const Color(0xFF22C55E),
+                            size: 20,
+                          ),
                         ),
                       ),
                     ],
@@ -418,12 +552,15 @@ class _CompaniesScreenState extends State<CompaniesScreen>
         children: [
           PhosphorIcon(icon, size: 14, color: const Color(0xFF22C55E)),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF22C55E),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF22C55E),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

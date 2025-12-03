@@ -84,7 +84,7 @@ class _BlockchainVerificationScreenState extends State<BlockchainVerificationScr
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'Verificación Blockchain',
+          'Verificación',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w700,
@@ -137,79 +137,69 @@ class _BlockchainVerificationScreenState extends State<BlockchainVerificationScr
                   ],
                   const SizedBox(height: 24),
                   // Red info
-                  if (state == VerificationState.verified)
-                    Row(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Row(
                       children: [
-                        Icon(Icons.wifi, size: 16, color: Colors.grey[600]),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Ethereum mainnet',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
+                        PhosphorIcon(
+                          PhosphorIcons.globe(PhosphorIconsStyle.fill),
+                          size: 18,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Polygon Amoy Testnet',
+                            style: TextStyle(
+                              color: Colors.grey[800],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        const Spacer(),
                         Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF22C55E).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                        ),
-                      ],
-                    )
-                  else if (state == VerificationState.pending)
-                    Row(
-                      children: [
-                        Icon(Icons.wifi, size: 16, color: Colors.grey[600]),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Ethereum mainn...',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    Row(
-                      children: [
-                        Text(
-                          '[ud83d\udd17] Network',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF22C55E),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Activo',
+                                style: TextStyle(
+                                  color: Color(0xFF22C55E),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
+                  ),
                   const SizedBox(height: 32),
                   // Botones
                   if (state == VerificationState.verified)
                     SizedBox(
                       width: double.infinity,
-                      height: 48,
+                      height: 52,
                       child: ElevatedButton(
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -220,36 +210,57 @@ class _BlockchainVerificationScreenState extends State<BlockchainVerificationScr
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4ADE80),
-                          foregroundColor: Colors.black,
+                          backgroundColor: const Color(0xFF22C55E),
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          elevation: 2,
+                          shadowColor: const Color(0xFF22C55E).withValues(alpha: 0.4),
                         ),
-                        child: const Text(
-                          'Ver en explorador',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            PhosphorIcon(
+                              PhosphorIcons.arrowSquareOut(PhosphorIconsStyle.bold),
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'Ver en explorador',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     )
                   else if (state == VerificationState.pending)
                     SizedBox(
                       width: double.infinity,
-                      height: 48,
+                      height: 52,
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber,
-                          foregroundColor: Colors.black,
+                          backgroundColor: const Color(0xFFF59E0B),
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          elevation: 0,
                         ),
                         child: const Text(
                           'Revisar más tarde',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     )
@@ -410,38 +421,71 @@ class _BlockchainVerificationScreenState extends State<BlockchainVerificationScr
 
   Widget _buildHashRow(String prefix, String hash) {
     return Builder(
-      builder: (context) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Text(
-                prefix,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(width: 8),
-              Text(
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            PhosphorIcon(
+              PhosphorIcons.hash(PhosphorIconsStyle.bold),
+              size: 18,
+              color: Colors.grey[600],
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
                 hash,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontFamily: 'monospace',
+                  color: Colors.grey[800],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ],
-          ),
-          TextButton(
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: hash));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Hash copiado al portapapeles'),
-                  duration: Duration(seconds: 2),
+            ),
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: hash));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        PhosphorIcon(
+                          PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('Hash copiado al portapapeles'),
+                      ],
+                    ),
+                    backgroundColor: const Color(0xFF22C55E),
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF22C55E),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              ),
+              child: const Text(
+                'Copiar',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
                 ),
-              );
-            },
-            child: const Text('Copiar'),
-          ),
-        ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
